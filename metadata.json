@@ -1,0 +1,6 @@
+{
+  "name": "AICHATBOTOLI",
+  "description": "An interactive task manager integrated with an AI assistant to help you brainstorm, break down, and organize tasks and work items.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
