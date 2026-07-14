@@ -20,9 +20,14 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 function getEffectiveApiKey(): string | undefined {
-  let envKey = process.env.GEMINI_API_KEY;
+  let envKey = process.env.GEMINI_API_KEY || 
+               process.env.TASKCHATBOT_API_KEY || 
+               (process.env as any).Taskchatbot_Api_key || 
+               (process.env as any).Taskchatbot || 
+               (process.env as any).TASKCHATBOT || 
+               (process.env as any).TASK_CHATBOT_API_KEY;
 
-  console.log("GEMINI_API_KEY Exists:", !!envKey);
+  console.log("GEMINI/TASKCHATBOT_API_KEY Exists:", !!envKey);
 
   if (!envKey) return undefined;
 
@@ -112,7 +117,12 @@ function getGeminiClient(): GoogleGenAI {
 
 // Check api health status
 app.get(["/api/health", "/health"], (req, res) => {
-  const key = process.env.GEMINI_API_KEY;
+  const key = process.env.GEMINI_API_KEY || 
+              process.env.TASKCHATBOT_API_KEY || 
+              (process.env as any).Taskchatbot_Api_key || 
+              (process.env as any).Taskchatbot || 
+              (process.env as any).TASKCHATBOT || 
+              (process.env as any).TASK_CHATBOT_API_KEY;
   res.json({
     status: "ok",
     hasApiKey: !!getEffectiveApiKey(),
@@ -488,9 +498,9 @@ app.post(["/api/chat", "/chat"], async (req, res) => {
       if (errorString.includes("UNAUTHENTICATED") || errorString.includes("401") || errorString.includes("invalid authentication credentials") || errorString.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED")) {
         const currentKey = getEffectiveApiKey() || "";
         if (currentKey.startsWith("AQ.") || currentKey.startsWith("ya29.")) {
-          errorString = "The GEMINI_API_KEY starting with 'AQ.' in your secrets is an OAuth 2.0 Access Token. Since Google OAuth access tokens typically expire in 1 hour, your token has expired or lacks permissions. Please set a permanent Gemini API Key (starts with 'AIzaSy') in your system environment variables or .env file to restore online AI capabilities";
+          errorString = "The API Key starting with 'AQ.' in your secrets is an OAuth 2.0 Access Token. Since Google OAuth access tokens typically expire in 1 hour, your token has expired or lacks permissions. Please set a permanent API Key (starts with 'AIzaSy') in your system environment variables or .env file to restore online AI capabilities";
         } else {
-          errorString = `Your configured GEMINI_API_KEY (starts with '${currentKey.substring(0, 6)}') is invalid or lacks permissions. Please configure a valid Gemini API Key starting with 'AIzaSy'`;
+          errorString = `Your configured API Key (starts with '${currentKey.substring(0, 6)}') is invalid or lacks permissions. Please configure a valid API Key starting with 'AIzaSy'`;
         }
       } else if (
         errorString.includes("API key expired") ||
@@ -498,7 +508,7 @@ app.post(["/api/chat", "/chat"], async (req, res) => {
         errorString.includes("renew the API key") ||
         errorString.includes("expired")
       ) {
-        errorString = "Your configured GEMINI_API_KEY has expired. Please open the Settings menu in Google AI Studio, locate the GEMINI_API_KEY secret, and renew or replace it with a fresh active API key starting with 'AIzaSy' to resume live online AI planning";
+        errorString = "Your configured API Key has expired. Please open the Settings menu in Google AI Studio, locate the API key secret, and renew or replace it with a fresh active API key starting with 'AIzaSy' to resume live online AI planning";
       }
 
       fallback.reply = `[⚠️ Gemini API Offline] ${errorString}.\n\nI processed your request using the local backup parser:\n${fallback.reply}`;
