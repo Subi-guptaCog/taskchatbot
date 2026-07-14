@@ -2,6 +2,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 interface Env {
   GEMINI_API_KEY?: string;
+  TASKCHATBOT_API_KEY?: string;
+  Taskchatbot_Api_key?: string;
+  Taskchatbot?: string;
+  TASKCHATBOT?: string;
+  TASK_CHATBOT_API_KEY?: string;
 }
 
 function getEffectiveApiKey(envKey?: string): string | undefined {
@@ -177,7 +182,12 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       });
     }
 
-    const rawKey = context.env.GEMINI_API_KEY;
+    const rawKey = context.env.GEMINI_API_KEY || 
+                   context.env.TASKCHATBOT_API_KEY || 
+                   (context.env as any).Taskchatbot_Api_key || 
+                   (context.env as any).Taskchatbot || 
+                   (context.env as any).TASKCHATBOT || 
+                   (context.env as any).TASK_CHATBOT_API_KEY;
     const apiKey = getEffectiveApiKey(rawKey);
     const isPlaceholder = !apiKey || apiKey === "PLACEHOLDER" || apiKey.includes("MY_GEMINI_API") || apiKey === "" || apiKey === "AIzaSyYourNewApiKeyHere";
 
@@ -401,9 +411,9 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       if (errorString.includes("UNAUTHENTICATED") || errorString.includes("401") || errorString.includes("invalid authentication credentials") || errorString.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED")) {
         const currentKey = getEffectiveApiKey(rawKey) || "";
         if (currentKey.startsWith("AQ.") || currentKey.startsWith("ya29.")) {
-          errorString = "The GEMINI_API_KEY starting with 'AQ.' in your secrets is an OAuth 2.0 Access Token. Since Google OAuth access tokens typically expire in 1 hour, your token has expired or lacks permissions. Please set a permanent Gemini API Key (starts with 'AIzaSy') in your system environment variables or cloud settings to restore online AI capabilities";
+          errorString = "The API Key starting with 'AQ.' in your secrets is an OAuth 2.0 Access Token. Since Google OAuth access tokens typically expire in 1 hour, your token has expired or lacks permissions. Please set a permanent API Key (starts with 'AIzaSy') in your system environment variables or cloud settings to restore online AI capabilities";
         } else {
-          errorString = `Your configured GEMINI_API_KEY (starts with '${currentKey.substring(0, 6)}') is invalid or lacks permissions. Please configure a valid Gemini API Key starting with 'AIzaSy'`;
+          errorString = `Your configured API Key (starts with '${currentKey.substring(0, 6)}') is invalid or lacks permissions. Please configure a valid API Key starting with 'AIzaSy'`;
         }
       } else if (
         errorString.includes("API key expired") ||
@@ -411,7 +421,7 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
         errorString.includes("renew the API key") ||
         errorString.includes("expired")
       ) {
-        errorString = "Your configured GEMINI_API_KEY has expired. Please open the Settings menu, locate the GEMINI_API_KEY secret, and renew or replace it with a fresh active API key starting with 'AIzaSy' to resume live online AI planning";
+        errorString = "Your configured API Key has expired. Please open the Settings menu, locate the API key secret, and renew or replace it with a fresh active API key starting with 'AIzaSy' to resume live online AI planning";
       }
 
       fallback.reply = `[⚠️ Gemini API Offline] ${errorString}.\n\nUsing local backup:\n${fallback.reply}`;
